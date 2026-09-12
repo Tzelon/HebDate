@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layoutDirection="rtl"
+    android:background="@android:color/transparent">
+
+    <TextView android:id="@+id/day"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:textColor="#FFFFFF" android:textSize="24sp" android:fontFamily="@font/hebdot" android:maxLines="1" />
+
+    <TextView android:id="@+id/year"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:textColor="#9A9A9A" android:textSize="15sp" android:fontFamily="@font/hebdot" />
+
+    <TextView android:id="@+id/parsha"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:textColor="#9A9A9A" android:textSize="13sp" android:fontFamily="@font/hebdot" android:layout_marginTop="6dp" />
+
+    <TextView android:id="@+id/shabbat"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:textColor="#D71921" android:textSize="15sp" android:fontFamily="@font/hebdot" android:visibility="gone" />
+</LinearLayout>
