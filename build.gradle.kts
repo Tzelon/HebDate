@@ -5,7 +5,7 @@ plugins {
 android {
     namespace = "dev.tzelon.hebrewdate"
     compileSdk = 35
-    defaultConfig { applicationId = "dev.tzelon.hebrewdate"; minSdk = 26; targetSdk = 35; versionCode = 3; versionName = "0.4" }
+    defaultConfig { applicationId = "dev.tzelon.hebrewdate"; minSdk = 26; targetSdk = 35; versionCode = 4; versionName = "0.5" }
     // Checked-in debug key: without it every CI runner signs with its own
     // throwaway keystore and the next APK won't install over the last one.
     signingConfigs {
@@ -21,4 +21,5 @@ android {
 }
 dependencies {
     implementation("com.kosherjava:zmanim:2.5.0")
+    testImplementation("junit:junit:4.13.2")
 }

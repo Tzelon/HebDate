@@ -10,12 +10,12 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-/** What the widget shows. shabbat is null on Sun–Thu. */
+/** What the widget shows. shabbat is null outside Shabbat/Yom Tov and their eves. */
 data class HebrewDay(
     val dateText: String,     // כ״ז באלול
     val yearText: String,     // תשפ״ו
     val parsha: String,       // נצבים
-    val shabbat: String?,     // כניסה 18:32 / יציאה 19:31
+    val shabbat: String?,     // כניסת שבת 18:32 / צאת החג 19:26
     val nextTick: Date,       // when to refresh next
 )
 
@@ -29,51 +29,77 @@ object HebrewDayProvider {
 
     fun compute(now: Date = Date()): HebrewDay {
         val civil = Calendar.getInstance(geo.timeZone).apply { time = now }
-        val zc = ComplexZmanimCalendar(geo).apply {
-            calendar = civil
-            candleLightingOffset = CANDLE_OFFSET_MIN
+        val sunset = zmanim(civil).sunset
+
+        // The Hebrew day flips at sunset, so from sunset on, the civil day that *carries* it is
+        // tomorrow. Anchoring on that one civil date keeps every lookup below on the same day.
+        val anchor = (civil.clone() as Calendar).apply {
+            if (sunset != null && now.after(sunset)) add(Calendar.DATE, 1)
         }
+        val today = hebrew(anchor)
 
-        // Hebrew date flips at sunset
-        val afterSunset = zc.sunset != null && now.after(zc.sunset)
-        val jc = JewishCalendar(civil).apply { inIsrael = true }
-        if (afterSunset) jc.forward(Calendar.DATE, 1)
-
-        val dow = civil.get(Calendar.DAY_OF_WEEK)
-        val satZc = if (dow == Calendar.FRIDAY) ComplexZmanimCalendar(geo).apply {
-            calendar = (civil.clone() as Calendar).apply { add(Calendar.DATE, 1) }
-        } else zc
-        val shabbat = when {
-            dow == Calendar.FRIDAY && !afterSunset -> "כניסה ${hhmm.format(zc.candleLighting)}"
-            dow == Calendar.FRIDAY || (dow == Calendar.SATURDAY && now.before(satZc.tzais)) ->
-                "יציאה ${hhmm.format(satZc.tzais)}"    // tzais = 8.5°; use tzais72 for ר״ת
-            else -> null
+        val shabbat: String?
+        val boundary: Date?
+        when {
+            // Inside Shabbat / Yom Tov: it ends at tzais of the last of any consecutive such days,
+            // so a Shabbat running into a festival (or the second day of Rosh Hashana) is one span.
+            today.isAssurBemelacha -> {
+                val lastCivil = anchor.clone() as Calendar
+                var last = today
+                while (last.isTomorrowShabbosOrYomTov) {
+                    lastCivil.add(Calendar.DATE, 1)
+                    last = hebrew(lastCivil)
+                }
+                boundary = zmanim(lastCivil).tzais       // tzais = 8.5°; use tzais72 for ר״ת
+                shabbat = "${if (last.isYomTov) "צאת החג" else "צאת שבת"} ${hhmm.format(boundary)}"
+            }
+            // Its eve: candle lighting tonight.
+            today.isTomorrowShabbosOrYomTov -> {
+                boundary = zmanim(anchor).candleLighting
+                shabbat = "${if (today.isErevYomTov) "כניסת החג" else "כניסת שבת"} ${hhmm.format(boundary)}"
+            }
+            else -> {
+                shabbat = null
+                boundary = null
+            }
         }
-
-        // parsha (or yom tov) of the coming Shabbat
-        val sat = JewishCalendar(civil).apply { inIsrael = true }
-        while (sat.dayOfWeek != Calendar.SATURDAY) sat.forward(Calendar.DATE, 1)
-        val parsha = fmt.formatParsha(sat).ifEmpty { fmt.formatYomTov(sat) }
 
         return HebrewDay(
-            dateText = "${fmt.formatHebrewNumber(jc.jewishDayOfMonth)} ב${fmt.formatMonth(jc)}",
-            yearText = fmt.formatHebrewNumber(jc.jewishYear),
-            parsha = parsha,
+            dateText = "${fmt.formatHebrewNumber(today.jewishDayOfMonth)} ב${fmt.formatMonth(today)}",
+            yearText = fmt.formatHebrewNumber(today.jewishYear),
+            parsha = label(anchor, today),
             shabbat = shabbat,
-            nextTick = nextTick(now, zc, dow),
+            nextTick = nextTick(now, sunset, boundary),
         )
     }
 
-    /** Next moment the display can change: sunset, tzais (Sat), or midnight. */
-    private fun nextTick(now: Date, zc: ComplexZmanimCalendar, dow: Int): Date {
+    /** The festival we are in or about to enter, else the parsha of the coming Shabbat. */
+    private fun label(anchor: Calendar, today: JewishCalendar): String = when {
+        today.isYomTov || today.isCholHamoed -> fmt.formatYomTov(today)
+        today.isErevYomTov -> fmt.formatYomTov(hebrew((anchor.clone() as Calendar).apply { add(Calendar.DATE, 1) }))
+        else -> {
+            val satCal = anchor.clone() as Calendar
+            while (satCal.get(Calendar.DAY_OF_WEEK) != Calendar.SATURDAY) satCal.add(Calendar.DATE, 1)
+            val sat = hebrew(satCal)
+            fmt.formatParsha(sat).ifEmpty { fmt.formatYomTov(sat) }
+        }
+    }
+
+    /** Next moment the display can change: sunset, the Shabbat/Yom Tov boundary, or midnight. */
+    private fun nextTick(now: Date, sunset: Date?, boundary: Date?): Date {
         val candidates = mutableListOf<Date>()
-        zc.sunset?.let { if (it.after(now)) candidates += it }
-        if (dow == Calendar.SATURDAY) zc.tzais?.let { if (it.after(now)) candidates += it }
-        val midnight = Calendar.getInstance(geo.timeZone).apply {
+        listOfNotNull(sunset, boundary).forEach { if (it.after(now)) candidates += it }
+        candidates += Calendar.getInstance(geo.timeZone).apply {
             time = now; add(Calendar.DATE, 1)
             set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 10); set(Calendar.MILLISECOND, 0)
         }.time
-        candidates += midnight
-        return candidates.minOf { it }.let { Date(it.time + 5_000) } // +5s so we're past the boundary
+        return candidates.min().let { Date(it.time + 5_000) } // +5s so we're past the boundary
     }
+
+    private fun zmanim(day: Calendar) = ComplexZmanimCalendar(geo).apply {
+        calendar = day.clone() as Calendar
+        candleLightingOffset = CANDLE_OFFSET_MIN
+    }
+
+    private fun hebrew(day: Calendar) = JewishCalendar(day.clone() as Calendar).apply { inIsrael = true }
 }
