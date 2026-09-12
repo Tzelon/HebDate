@@ -8,7 +8,9 @@ Shabbat entry (sunset−18) / exit (tzais 8.5°) for Ashkelon.
 - No launcher activity → appears only in the widget picker
 
 Tweaks: `geo` and `CANDLE_OFFSET_MIN` in HebrewDay.kt; swap `zc.tzais` for `zc.tzais72` for Rabbeinu Tam.
-Font: add `android:fontFamily` on the TextViews once you have a Hebrew dot-matrix TTF.
+Styling lives in `res/layout/widget_hebrew_date.xml` + `res/values/colors.xml`: a cream rounded
+card (`res/drawable/widget_card.xml`) with near-black dot-matrix text, matching the launcher's
+weather/clock widgets.
 
 ## Font
 `res/font/hebdot.ttf` is a generated dot-matrix Hebrew font (letters, gershayim, digits, colon).

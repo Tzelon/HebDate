@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Matches the launcher's dot-matrix cards: cream card, near-black text. -->
+    <color name="widget_card">#F6F1E7</color>
+    <color name="widget_text">#1C1917</color>
+    <color name="widget_text_dim">#6B645C</color>
+</resources>
