@@ -15,3 +15,9 @@ weather/clock widgets.
 ## Font
 `res/font/hebdot.ttf` is a generated dot-matrix Hebrew font (letters, gershayim, digits, colon).
 Edit the bitmaps in `tools/font/build_font.py` and run it (`pip install fonttools`) to regenerate.
+
+## Installing
+`keystore/debug.keystore` signs every debug build, including CI, so each new APK
+installs over the previous one. It is a debug key only — never ship a release with it.
+Coming from a differently-signed build, uninstall first:
+`adb uninstall dev.tzelon.hebrewdate`.
