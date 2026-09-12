@@ -5,7 +5,7 @@ plugins {
 android {
     namespace = "dev.tzelon.hebrewdate"
     compileSdk = 35
-    defaultConfig { applicationId = "dev.tzelon.hebrewdate"; minSdk = 26; targetSdk = 35; versionCode = 4; versionName = "0.5" }
+    defaultConfig { applicationId = "dev.tzelon.hebrewdate"; minSdk = 26; targetSdk = 35; versionCode = 5; versionName = "0.6" }
     // Checked-in debug key: without it every CI runner signs with its own
     // throwaway keystore and the next APK won't install over the last one.
     signingConfigs {

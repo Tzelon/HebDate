@@ -6,33 +6,61 @@ import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.os.Bundle
 
-/** Font picker. Runs when the widget is added, and again when its card is tapped. */
+/** Settings for one widget. Runs when it is added, and again when its card is tapped. */
 class WidgetConfigActivity : Activity() {
+
+    private var widgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val widgetId = intent?.extras?.getInt(
+        widgetId = intent?.extras?.getInt(
             AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID,
         ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
         if (widgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
             finish()
             return
         }
-        // Backing out of the picker leaves the widget as it was.
-        setResult(RESULT_CANCELED, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId))
+        // Backing out leaves the widget as it was; the widget itself is already usable.
+        setResult(RESULT_OK, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId))
+        showSettings()
+    }
 
-        val fonts = WidgetFont.entries.toTypedArray()
-        val labels = fonts.map { getString(if (it == WidgetFont.DOTS) R.string.font_dots else R.string.font_system) }
-        AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
-            .setTitle(R.string.font_title)
-            .setSingleChoiceItems(labels.toTypedArray(), fonts.indexOf(WidgetFont.of(this, widgetId))) { dialog, which ->
-                WidgetFont.store(this, widgetId, fonts[which])
-                dialog.dismiss()
+    private fun showSettings() {
+        val entries = arrayOf(
+            getString(R.string.setting_font, WidgetPrefs.font(this, widgetId).label),
+            getString(R.string.setting_city, WidgetPrefs.city(this, widgetId).label),
+        )
+        dialog()
+            .setTitle(R.string.settings_title)
+            .setItems(entries) { _, which -> if (which == 0) pickFont() else pickCity() }
+            .setOnCancelListener { finish() }
+            .show()
+    }
+
+    private fun pickFont() = pick(
+        R.string.setting_font_title,
+        WidgetFont.entries.map { it.label },
+        WidgetFont.entries.indexOf(WidgetPrefs.font(this, widgetId)),
+    ) { WidgetPrefs.setFont(this, widgetId, WidgetFont.entries[it]) }
+
+    private fun pickCity() = pick(
+        R.string.setting_city_title,
+        City.entries.map { it.label },
+        City.entries.indexOf(WidgetPrefs.city(this, widgetId)),
+    ) { WidgetPrefs.setCity(this, widgetId, City.entries[it]) }
+
+    private fun pick(titleRes: Int, labels: List<String>, checked: Int, store: (Int) -> Unit) {
+        dialog()
+            .setTitle(titleRes)
+            .setSingleChoiceItems(labels.toTypedArray(), checked) { d, which ->
+                store(which)
+                d.dismiss()
                 HebrewDateWidget.refresh(this, intArrayOf(widgetId))
-                setResult(RESULT_OK, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId))
                 finish()
             }
             .setOnCancelListener { finish() }
             .show()
     }
+
+    private fun dialog() = AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
 }

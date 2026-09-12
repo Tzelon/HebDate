@@ -7,13 +7,14 @@ import java.util.Locale
 import java.util.TimeZone
 import org.junit.Test
 
-/** Expectations are for Ashkelon, Asia/Jerusalem, 18-minute candle lighting, tzais 8.5°. */
+/** Expectations are for Asia/Jerusalem, tzais 8.5°, and each city's own candle-lighting custom. */
 class HebrewDayProviderTest {
 
     private val parse = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US)
         .apply { timeZone = TimeZone.getTimeZone("Asia/Jerusalem") }
 
-    private fun at(moment: String) = HebrewDayProvider.compute(parse.parse(moment)!!)
+    private fun at(moment: String, city: City = City.ASHKELON) =
+        HebrewDayProvider.compute(city, parse.parse(moment)!!)
 
     @Test fun `ordinary weekday has no shabbat line`() {
         val d = at("2026-09-16 12:00")
@@ -52,6 +53,17 @@ class HebrewDayProviderTest {
         assertEquals("כניסת החג 18:35", at("2026-09-11 10:00").shabbat)
         assertEquals("צאת החג 19:16", at("2026-09-21 12:00").shabbat)
         assertEquals("שמיני עצרת", at("2026-10-03 12:00").parsha)
+    }
+
+    @Test fun `each city keeps its own times and candle-lighting custom`() {
+        // Jerusalem lights 40 minutes before sunset, Ashkelon 18.
+        assertEquals("כניסת שבת 18:01", at("2026-09-18 16:00", City.JERUSALEM).shabbat)
+        assertEquals("כניסת שבת 18:25", at("2026-09-18 16:00", City.ASHKELON).shabbat)
+        assertEquals("צאת שבת 19:16", at("2026-09-19 14:00", City.JERUSALEM).shabbat)
+        // The span still runs to the end of the second day of Rosh Hashana.
+        assertEquals("צאת החג 19:24", at("2026-09-12 13:56", City.JERUSALEM).shabbat)
+        // The Hebrew date itself does not depend on the city.
+        assertEquals("א׳ בתשרי", at("2026-09-12 13:56", City.JERUSALEM).dateText)
     }
 
     @Test fun `next tick never lands in the past`() {

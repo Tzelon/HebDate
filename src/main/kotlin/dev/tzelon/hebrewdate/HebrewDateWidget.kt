@@ -13,23 +13,28 @@ import android.widget.RemoteViews
 class HebrewDateWidget : AppWidgetProvider() {
 
     override fun onUpdate(ctx: Context, mgr: AppWidgetManager, ids: IntArray) {
-        val d = HebrewDayProvider.compute()
-        ids.forEach { id -> mgr.updateAppWidget(id, views(ctx, mgr, id, d)) }
+        // Each widget can be set to its own city, so each gets its own reading of the day.
+        val ticks = ids.map { id ->
+            val d = HebrewDayProvider.compute(WidgetPrefs.city(ctx, id))
+            mgr.updateAppWidget(id, views(ctx, mgr, id, d))
+            d.nextTick
+        }
+        val nextTick = ticks.minOrNull() ?: return
 
         val am = ctx.getSystemService(AlarmManager::class.java)
         val pi = PendingIntent.getBroadcast(
             ctx, 0, Intent(ctx, javaClass).setAction(ACTION_TICK),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        am.setAndAllowWhileIdle(AlarmManager.RTC, d.nextTick.time, pi)
+        am.setAndAllowWhileIdle(AlarmManager.RTC, nextTick.time, pi)
     }
 
     /** Re-render at the new size: the text is a bitmap, so it does not reflow on its own. */
     override fun onAppWidgetOptionsChanged(
         ctx: Context, mgr: AppWidgetManager, id: Int, newOptions: Bundle,
-    ) = mgr.updateAppWidget(id, views(ctx, mgr, id, HebrewDayProvider.compute()))
+    ) = mgr.updateAppWidget(id, views(ctx, mgr, id, HebrewDayProvider.compute(WidgetPrefs.city(ctx, id))))
 
-    override fun onDeleted(ctx: Context, ids: IntArray) = WidgetFont.forget(ctx, ids)
+    override fun onDeleted(ctx: Context, ids: IntArray) = WidgetPrefs.forget(ctx, ids)
 
     override fun onReceive(ctx: Context, intent: Intent) {
         super.onReceive(ctx, intent)
@@ -44,7 +49,7 @@ class HebrewDateWidget : AppWidgetProvider() {
         val options = mgr.getAppWidgetOptions(id)
         val width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, DEFAULT_DP)
         val height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, DEFAULT_DP)
-        val bitmap = WidgetRenderer.render(ctx, d, WidgetFont.of(ctx, id), width, height)
+        val bitmap = WidgetRenderer.render(ctx, d, WidgetPrefs.font(ctx, id), width, height)
 
         return RemoteViews(ctx.packageName, R.layout.widget_hebrew_date).apply {
             setImageViewBitmap(R.id.canvas, bitmap)
