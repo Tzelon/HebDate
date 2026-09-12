@@ -5,6 +5,10 @@ Shabbat entry (sunset−18) / exit (tzais 8.5°) for Ashkelon.
 
 - `HebrewDay.kt` — all logic, built on KosherJava Zmanim
 - `HebrewDateWidget.kt` — AppWidgetProvider; refreshes at the next boundary (sunset / tzais / midnight)
+- `WidgetRenderer.kt` — paints the text into a bitmap, because a TextView's `fontFamily` is not
+  honoured reliably inside RemoteViews (the launcher inflates the layout and can impose its own font)
+- `WidgetConfigActivity.kt` — font picker: dot-matrix (default) or the system font. Shown when the
+  widget is added, and again whenever the card is tapped; the choice is stored per widget instance
 - No launcher activity → appears only in the widget picker
 
 Tweaks: `geo` and `CANDLE_OFFSET_MIN` in HebrewDay.kt; swap `zc.tzais` for `zc.tzais72` for Rabbeinu Tam.

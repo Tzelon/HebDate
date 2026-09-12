@@ -6,6 +6,8 @@
     android:targetCellHeight="2"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="0"
-    android:initialLayout="@layout/widget_hebrew_date"
-    android:previewLayout="@layout/widget_hebrew_date"
+    android:initialLayout="@layout/widget_preview"
+    android:previewLayout="@layout/widget_preview"
+    android:configure="dev.tzelon.hebrewdate.WidgetConfigActivity"
+    android:widgetFeatures="reconfigurable|configuration_optional"
     android:widgetCategory="home_screen" />

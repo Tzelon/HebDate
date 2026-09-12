@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hebrew Date</string>
+    <string name="font_title">גופן</string>
+    <string name="font_dots">נקודות</string>
+    <string name="font_system">רגיל</string>
+    <string name="preview_date">א׳ בתשרי</string>
+    <string name="preview_year">תשפ״ז</string>
+</resources>
