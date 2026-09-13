@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application android:label="@string/app_name" android:allowBackup="false">
         <receiver
             android:name=".HebrewDateWidget"
@@ -10,6 +12,10 @@
                 <action android:name="android.intent.action.TIMEZONE_CHANGED" />
                 <action android:name="android.intent.action.TIME_SET" />
                 <action android:name="dev.tzelon.hebrewdate.TICK" />
+                <!-- Redraw after an app update or a reboot: the launcher caches the last bitmap
+                     we pushed, and alarms do not survive either event. -->
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"

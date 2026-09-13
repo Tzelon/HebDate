@@ -38,8 +38,7 @@ class HebrewDateWidget : AppWidgetProvider() {
 
     override fun onReceive(ctx: Context, intent: Intent) {
         super.onReceive(ctx, intent)
-        if (intent.action in setOf(ACTION_TICK, Intent.ACTION_DATE_CHANGED,
-                Intent.ACTION_TIMEZONE_CHANGED, Intent.ACTION_TIME_CHANGED)) {
+        if (intent.action in REDRAW_ON) {
             val mgr = AppWidgetManager.getInstance(ctx)
             onUpdate(ctx, mgr, mgr.getAppWidgetIds(ComponentName(ctx, javaClass)))
         }
@@ -58,7 +57,7 @@ class HebrewDateWidget : AppWidgetProvider() {
         }
     }
 
-    /** Tapping the widget reopens the font picker. */
+    /** Tapping the widget reopens its settings. */
     private fun configIntent(ctx: Context, id: Int) = PendingIntent.getActivity(
         ctx, id,
         Intent(ctx, WidgetConfigActivity::class.java)
@@ -69,6 +68,16 @@ class HebrewDateWidget : AppWidgetProvider() {
 
     companion object {
         const val ACTION_TICK = "dev.tzelon.hebrewdate.TICK"
+
+        private val REDRAW_ON = setOf(
+            ACTION_TICK,
+            Intent.ACTION_DATE_CHANGED,
+            Intent.ACTION_TIMEZONE_CHANGED,
+            Intent.ACTION_TIME_CHANGED,
+            Intent.ACTION_MY_PACKAGE_REPLACED,
+            Intent.ACTION_BOOT_COMPLETED,
+        )
+
         private const val DEFAULT_DP = 110
 
         fun refresh(ctx: Context, ids: IntArray) = ctx.sendBroadcast(

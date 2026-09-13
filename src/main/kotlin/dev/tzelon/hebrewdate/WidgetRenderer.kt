@@ -27,25 +27,18 @@ object WidgetRenderer {
         val width = px(ctx, widthDp.coerceIn(MIN_DP, MAX_DP))
         val height = px(ctx, heightDp.coerceIn(MIN_DP, MAX_DP))
         val pad = px(ctx, PADDING_DP)
+        val lines = listOfNotNull(day.dateText, day.yearText, day.parsha, day.shabbat)
 
-        val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = font.typeface(ctx)
-            color = ctx.getColor(R.color.widget_text)
-            textSize = sp(ctx, BODY_SP)
+        // Shrink until every line fits on a line of its own: a wrapped "צאת החג 19:26" reads worse
+        // than slightly smaller text.
+        var scale = 1f
+        var layout = layout(ctx, font, lines, width - 2 * pad, scale)
+        while (scale > MIN_SCALE &&
+            (layout.lineCount > lines.size || layout.height > height - 2 * pad)
+        ) {
+            scale -= SCALE_STEP
+            layout = layout(ctx, font, lines, width - 2 * pad, scale)
         }
-
-        val text = SpannableStringBuilder()
-        text.appendLine(day.dateText, AbsoluteSizeSpan(sp(ctx, TITLE_SP).toInt(), false))
-        text.appendLine(day.yearText)
-        text.appendLine(day.parsha)
-        day.shabbat?.let { text.appendLine(it, ForegroundColorSpan(ctx.getColor(R.color.widget_text_dim))) }
-
-        val layout = StaticLayout.Builder
-            .obtain(text, 0, text.length, paint, (width - 2 * pad).coerceAtLeast(1))
-            .setAlignment(Layout.Alignment.ALIGN_NORMAL)
-            .setTextDirection(TextDirectionHeuristics.RTL)
-            .setIncludePad(false)
-            .build()
 
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         Canvas(bitmap).apply {
@@ -55,12 +48,32 @@ object WidgetRenderer {
         return bitmap
     }
 
-    /** Appends one line, optionally styled, without a trailing blank line. */
-    private fun SpannableStringBuilder.appendLine(line: String, span: Any? = null) {
-        if (isNotEmpty()) append('\n')
-        val start = length
-        append(line)
-        span?.let { setSpan(it, start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }
+    private fun layout(
+        ctx: Context, font: WidgetFont, lines: List<String>, width: Int, scale: Float,
+    ): StaticLayout {
+        val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+            typeface = font.typeface(ctx)
+            color = ctx.getColor(R.color.widget_text)
+            textSize = sp(ctx, BODY_SP * scale)
+        }
+        val text = SpannableStringBuilder()
+        lines.forEachIndexed { index, line ->
+            if (index > 0) text.append('\n')
+            val start = text.length
+            text.append(line)
+            val span = when (index) {
+                0 -> AbsoluteSizeSpan(sp(ctx, TITLE_SP * scale).toInt(), false)
+                lines.lastIndex -> ForegroundColorSpan(ctx.getColor(R.color.widget_text_dim))
+                else -> null
+            }
+            span?.let { text.setSpan(it, start, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }
+        }
+        return StaticLayout.Builder
+            .obtain(text, 0, text.length, paint, width.coerceAtLeast(1))
+            .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+            .setTextDirection(TextDirectionHeuristics.RTL)
+            .setIncludePad(false)
+            .build()
     }
 
     private fun px(ctx: Context, dp: Int) = TypedValue.applyDimension(
@@ -76,4 +89,6 @@ object WidgetRenderer {
     private const val MAX_DP = 480
     private const val TITLE_SP = 20f
     private const val BODY_SP = 16f
+    private const val MIN_SCALE = 0.6f
+    private const val SCALE_STEP = 0.05f
 }
