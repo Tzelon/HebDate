@@ -27,13 +27,13 @@ g(0x05D0, """
 #..##
 #...#""")            # א
 g(0x05D1, """
-..####.
-......#
-......#
-......#
-......#
-......#
-#######""")          # ב — the base juts out to the left; that foot is what separates it from כ
+...####.
+.......#
+.......#
+.......#
+.......#
+.......#
+########""")         # ב — the base runs three dots past the top bar; that foot separates it from כ
 g(0x05D2, """
 .###.
 ...#.

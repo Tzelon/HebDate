@@ -31,7 +31,7 @@ class WidgetConfigActivity : Activity() {
             getString(R.string.setting_city, WidgetPrefs.city(this, widgetId).label),
         )
         dialog()
-            .setTitle(R.string.settings_title)
+            .setTitle(getString(R.string.settings_title, version()))
             .setItems(entries) { _, which -> if (which == 0) pickFont() else pickCity() }
             .setOnCancelListener { finish() }
             .show()
@@ -63,4 +63,7 @@ class WidgetConfigActivity : Activity() {
     }
 
     private fun dialog() = AlertDialog.Builder(this, android.R.style.Theme_Material_Light_Dialog_Alert)
+
+    /** Shown in the title so it is obvious which build is installed. */
+    private fun version() = packageManager.getPackageInfo(packageName, 0).versionName ?: "?"
 }

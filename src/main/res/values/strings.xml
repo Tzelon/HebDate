@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Hebrew Date</string>
-    <string name="settings_title">הגדרות</string>
+    <string name="settings_title">הגדרות · %1$s</string>
     <string name="setting_font">גופן: %1$s</string>
     <string name="setting_city">עיר: %1$s</string>
     <string name="setting_font_title">גופן</string>
