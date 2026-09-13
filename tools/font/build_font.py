@@ -27,13 +27,13 @@ g(0x05D0, """
 #..##
 #...#""")            # א
 g(0x05D1, """
-...####.
-.......#
-.......#
-.......#
-.......#
-.......#
-########""")         # ב — the base runs three dots past the top bar; that foot separates it from כ
+.####.
+....#.
+....#.
+....#.
+....#.
+....#.
+.#####""")           # ב — the base runs past the stem to the right; that heel separates it from כ
 g(0x05D2, """
 .###.
 ...#.
@@ -43,13 +43,13 @@ g(0x05D2, """
 .#.#.
 #..#.""")            # ג
 g(0x05D3, """
-#####
-....#
-....#
-....#
-....#
-....#
-....#""")            # ד
+.#####
+....#.
+....#.
+....#.
+....#.
+....#.
+....#.""")           # ד — same heel as ב, on the top bar; ר below is the flush version
 g(0x05D4, """
 #####
 ....#
@@ -109,13 +109,13 @@ g(0x05DA, """
 ....#
 ....#""")            # ך
 g(0x05DB, """
-.###.
+.####
 ....#
 ....#
 ....#
 ....#
 ....#
-.###.""")            # כ — both bars tucked in, so it reads as rounded, with no foot
+.####""")            # כ — bars flush with the stem, so the corner reads as rounded, with no heel
 g(0x05DC, """
 #....
 .#...

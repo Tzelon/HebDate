@@ -21,6 +21,8 @@ weather/clock widgets.
 
 ## Font
 `res/font/hebdot.ttf` is a generated dot-matrix Hebrew font (letters, gershayim, digits, colon).
+ב and ד carry a heel: their bar runs one dot past the stem, which is what tells them apart from
+the flush כ and ר — measured off a text face, not guessed.
 Edit the bitmaps in `tools/font/build_font.py` and run it (`pip install fonttools`); it writes
 straight back to `res/font/hebdot.ttf`.
 
