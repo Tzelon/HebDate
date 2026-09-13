@@ -21,7 +21,8 @@ weather/clock widgets.
 
 ## Font
 `res/font/hebdot.ttf` is a generated dot-matrix Hebrew font (letters, gershayim, digits, colon).
-Edit the bitmaps in `tools/font/build_font.py` and run it (`pip install fonttools`) to regenerate.
+Edit the bitmaps in `tools/font/build_font.py` and run it (`pip install fonttools`); it writes
+straight back to `res/font/hebdot.ttf`.
 
 ## Installing
 `keystore/debug.keystore` signs every debug build, including CI, so each new APK

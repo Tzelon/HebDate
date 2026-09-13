@@ -1,6 +1,13 @@
+import os
+import sys
+
 from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.transformPen import TransformPen
+
+# Written to the app's font resource unless another path is given.
+OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "..", "src", "main", "res", "font", "hebdot.ttf")
 
 # rows top->bottom. Row 0 = ascender row (above x-height), rows 1-7 = body, rows 8-9 descenders.
 # Glyph bitmaps below are body-only unless marked; "asc"/"desc" keys shift them.
@@ -20,13 +27,13 @@ g(0x05D0, """
 #..##
 #...#""")            # א
 g(0x05D1, """
-.####.
-.....#
-.....#
-.....#
-.....#
-.....#
-######""")           # ב
+..####.
+......#
+......#
+......#
+......#
+......#
+#######""")          # ב — the base juts out to the left; that foot is what separates it from כ
 g(0x05D2, """
 .###.
 ...#.
@@ -102,13 +109,13 @@ g(0x05DA, """
 ....#
 ....#""")            # ך
 g(0x05DB, """
-.####
+.###.
 ....#
 ....#
 ....#
 ....#
 ....#
-.####""")            # כ
+.###.""")            # כ — both bars tucked in, so it reads as rounded, with no foot
 g(0x05DC, """
 #....
 .#...
@@ -303,5 +310,5 @@ fb.setupNameTable({"familyName": "HebDot", "styleName": "Regular",
                    "fullName": "HebDot Regular", "psName": "HebDot-Regular",
                    "uniqueFontIdentifier": "HebDot-0.1"})
 fb.setupPost()
-fb.save("/tmp/font/hebdot.ttf")
-print("glyphs:", len(order))
+fb.save(OUT)
+print("glyphs:", len(order), "->", os.path.normpath(OUT))
